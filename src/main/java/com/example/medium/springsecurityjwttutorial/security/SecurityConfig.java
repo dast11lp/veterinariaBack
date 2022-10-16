@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,14 +19,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.example.medium.springsecurityjwttutorial.repository.UserRepo;
 
 @Configuration
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter{
 	
-	@Autowired private UserRepo userRepo;
+    @Autowired private UserRepo userRepo;
+	@Autowired private JWTUtil util;
 	@Autowired private JWTFilter filter;
 	@Autowired private MyUserDetailsService userDetailsService;
 	
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+	@Override
+	public void configure(HttpSecurity http) throws Exception{
+		
+		AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+		
 		
 		
 		http.csrf().disable()
@@ -32,10 +38,11 @@ public class SecurityConfig {
 			.cors()
 			.and()
 			.authorizeHttpRequests()
-			.antMatchers("/api/auth/**").permitAll()
+			.antMatchers("/api/auth/**","/api/login/**").permitAll()
 			.antMatchers("/api/user/**").hasRole("USER_" + this.roleId())
 			.and()
-			.userDetailsService(this.userDetailsService)
+			//.userDetailsService(this.userDetailsService)
+			.addFilter(new MyAuthenticationFilter(authenticationManager(),this.util, userRepo))
 			.exceptionHandling()
 				.authenticationEntryPoint(null)
 			.and()
@@ -44,10 +51,12 @@ public class SecurityConfig {
 		
 		http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
 		
-		return http.build();
+		 //http.build();
 			
 	}
 	
+	
+
 	@Bean
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
@@ -59,7 +68,7 @@ public class SecurityConfig {
 	}
 	
 	public Long roleId () {
-		return (long) 1;
+		return (long) 3;
 	}
 
 }

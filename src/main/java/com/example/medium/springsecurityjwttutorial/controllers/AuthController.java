@@ -21,6 +21,7 @@ import com.example.medium.springsecurityjwttutorial.models.LoginCredentials;
 import com.example.medium.springsecurityjwttutorial.repository.RoleRep;
 import com.example.medium.springsecurityjwttutorial.repository.UserRepo;
 import com.example.medium.springsecurityjwttutorial.security.JWTUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,7 +34,7 @@ public class AuthController {
 	@Autowired private RoleRep roleRep;
 	
 	@PostMapping("/register")
-	public Map<String, Object> registerHandler(@RequestBody User user){
+	public Map<String, Object> registerHandler(@RequestBody User user) throws JsonProcessingException{
 		String encodedPass = this.passwordEncoder.encode(user.getPassword());
 		user.setPassword(encodedPass);
 		
@@ -44,7 +45,7 @@ public class AuthController {
 		role.setidUserAuth(userRepo.findByEmail(user.getEmail()).get().getId());
 		this.roleRep.save(role);
 		
-		String token = this.jwtUtil.generateToken(user);
+		String token = this.jwtUtil.generateToken(user, null);
 		return Collections.singletonMap("jwt-token", token);
 	}
 	
@@ -59,11 +60,11 @@ public class AuthController {
 			
 			this.authManager.authenticate(authInputToken);
 			
-			String token = jwtUtil.generateToken(user);
+			String token = jwtUtil.generateToken(user, null);
 			
 			return Collections.singletonMap("jwt-token", token);
 			
-		}catch (AuthenticationException authExc){
+		}catch (Exception authExc){
             throw new RuntimeException("Invalid Login Credentials");
         }
 	}

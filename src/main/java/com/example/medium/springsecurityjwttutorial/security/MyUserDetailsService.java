@@ -32,7 +32,7 @@ public class MyUserDetailsService implements UserDetailsService{
 		Optional<User> userRes = userRepo.findByEmail(email);
 		
 		if(userRes.isEmpty()) throw new UsernameNotFoundException("Could not find User with email = " + email);
-		User user = getUser(userRes);
+		User user = userRes.get();
 		
 		List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
 		
@@ -41,11 +41,6 @@ public class MyUserDetailsService implements UserDetailsService{
 		}
 		
 		return new org.springframework.security.core.userdetails.User(email, user.getPassword(), authorities);
-	}
-	
-	public User getUser(Optional<User> userRes) {
-		User user = userRes.get();
-		return user;
 	}
 	
 	

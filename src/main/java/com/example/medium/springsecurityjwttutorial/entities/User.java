@@ -41,7 +41,7 @@ public class User {
 	@Column(name = "telefefono_user")
 	private String telefefono;
 
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name = "id_user_auth")
 	private List<Role> roles;
 
